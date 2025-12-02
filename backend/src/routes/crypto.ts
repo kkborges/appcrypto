@@ -96,65 +96,66 @@ router.get('/:id/history', authenticateToken, async (req: AuthRequest, res: Resp
     const { id } = req.params;
     const { timeframe = '1h' } = req.query;
 
-    let interval = '1 minute';
-    let groupBy = '1 minute';
+    let interval = '1 hour';
+    let truncUnit = 'minute';
     let limit = 60;
 
     // Configura intervalo baseado no timeframe solicitado
+    // PostgreSQL date_trunc aceita apenas: second, minute, hour, day, week, month, quarter, year
     switch (timeframe) {
       case '1m': // Últimos 5 minutos, minuto a minuto
         interval = '5 minutes';
-        groupBy = '1 minute';
+        truncUnit = 'minute';
         limit = 5;
         break;
       case '5m': // Últimos 60 minutos, 5 em 5 minutos
-        interval = '60 minutes';
-        groupBy = '5 minutes';
+        interval = '1 hour';
+        truncUnit = 'minute';
         limit = 12;
         break;
       case '15m': // Últimas 2 horas, 15 em 15 minutos
         interval = '2 hours';
-        groupBy = '15 minutes';
+        truncUnit = 'minute';
         limit = 8;
         break;
-      case '1h': // Últimas 5 horas, hora em hora
-        interval = '5 hours';
-        groupBy = '1 hour';
-        limit = 5;
+      case '1h': // Últimas 24 horas, hora em hora
+        interval = '24 hours';
+        truncUnit = 'hour';
+        limit = 24;
         break;
-      case '2h': // Últimas 12 horas, 2 em 2 horas
-        interval = '12 hours';
-        groupBy = '2 hours';
-        limit = 6;
+      case '2h': // Últimas 48 horas, 2 em 2 horas
+        interval = '48 hours';
+        truncUnit = 'hour';
+        limit = 24;
         break;
-      case '6h': // Últimas 32 horas, 6 em 6 horas
-        interval = '32 hours';
-        groupBy = '6 hours';
-        limit = 6;
-        break;
-      case '12h': // Últimas 72 horas, 12 em 12 horas
-        interval = '72 hours';
-        groupBy = '12 hours';
-        limit = 6;
-        break;
-      case '24h': // Última semana, 24 em 24 horas
+      case '6h': // Últimos 7 dias, 6 em 6 horas
         interval = '7 days';
-        groupBy = '24 hours';
-        limit = 7;
+        truncUnit = 'hour';
+        limit = 28;
         break;
-      case '7d': // Últimos 30 dias, 1 semana
+      case '12h': // Últimas 2 semanas, 12 em 12 horas
+        interval = '14 days';
+        truncUnit = 'hour';
+        limit = 28;
+        break;
+      case '24h': // Último mês, dia a dia
         interval = '30 days';
-        groupBy = '7 days';
-        limit = 4;
+        truncUnit = 'day';
+        limit = 30;
         break;
-      case '30d': // Últimos 5 meses, 30 em 30 dias
-        interval = '150 days';
-        groupBy = '30 days';
-        limit = 5;
+      case '7d': // Últimos 3 meses, semana a semana
+        interval = '90 days';
+        truncUnit = 'week';
+        limit = 13;
+        break;
+      case '30d': // Último ano, mês a mês
+        interval = '365 days';
+        truncUnit = 'month';
+        limit = 12;
         break;
       default:
         interval = '24 hours';
-        groupBy = '1 hour';
+        truncUnit = 'hour';
         limit = 24;
     }
 
@@ -170,7 +171,7 @@ router.get('/:id/history', authenticateToken, async (req: AuthRequest, res: Resp
       GROUP BY date_trunc($1, timestamp)
       ORDER BY time DESC
       LIMIT $3`,
-      [groupBy, id, limit]
+      [truncUnit, id, limit]
     );
 
     res.json({

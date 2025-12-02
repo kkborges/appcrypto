@@ -35,10 +35,21 @@ export function setupCronJobs() {
   cron.schedule('0 * * * *', async () => {
     console.log('📊 [CRON] Iniciando análise completa...');
     try {
+      const { pool } = await import('../config/database');
+
+      // Verifica se há dados suficientes para análise
+      const countResult = await pool.query('SELECT COUNT(*) as count FROM price_history');
+      const dataCount = parseInt(countResult.rows[0].count);
+
+      if (dataCount < 10) {
+        console.log('⚠️  [CRON] Dados insuficientes para análise. Aguardando mais coletas...');
+        return;
+      }
+
       await cryptoAnalyzer.performFullAnalysis();
       console.log('✅ [CRON] Análise completa concluída');
-    } catch (error) {
-      console.error('❌ [CRON] Erro na análise:', error);
+    } catch (error: any) {
+      console.error('❌ [CRON] Erro na análise:', error.message || error);
     }
   });
 

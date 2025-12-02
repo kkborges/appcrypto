@@ -50,8 +50,11 @@ export class DataCollector {
         change3m: coin.price_change_percentage_30d_in_currency,
         change6m: coin.price_change_percentage_200d_in_currency
       }));
-    } catch (error) {
-      console.error('Error collecting from CoinGecko:', error);
+    } catch (error: any) {
+      const errorMsg = error.code === 'ENOTFOUND'
+        ? `DNS resolution failed for ${error.hostname}`
+        : error.message || 'Unknown error';
+      console.warn(`⚠️  CoinGecko unavailable: ${errorMsg}`);
       return [];
     }
   }
@@ -74,8 +77,11 @@ export class DataCollector {
         marketCap: parseFloat(coin.marketCapUsd),
         change24h: parseFloat(coin.changePercent24Hr)
       }));
-    } catch (error) {
-      console.error('Error collecting from CoinCap:', error);
+    } catch (error: any) {
+      const errorMsg = error.code === 'ENOTFOUND'
+        ? `DNS resolution failed for ${error.hostname}`
+        : error.message || 'Unknown error';
+      console.warn(`⚠️  CoinCap unavailable: ${errorMsg}`);
       return [];
     }
   }
@@ -104,8 +110,11 @@ export class DataCollector {
           volume24h: parseFloat(coin.volume) * parseFloat(coin.lastPrice),
           change24h: parseFloat(coin.priceChangePercent)
         }));
-    } catch (error) {
-      console.error('Error collecting from Binance:', error);
+    } catch (error: any) {
+      const errorMsg = error.code === 'ENOTFOUND'
+        ? `DNS resolution failed for ${error.hostname}`
+        : error.message || 'Unknown error';
+      console.warn(`⚠️  Binance unavailable: ${errorMsg}`);
       return [];
     }
   }
