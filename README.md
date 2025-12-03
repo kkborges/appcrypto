@@ -85,6 +85,8 @@ cd crypto-search-engine
 npm install
 ```
 
+**Problemas na instalação?** Veja [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+
 ### 3. Configure o banco de dados
 Crie um banco PostgreSQL:
 ```sql
@@ -122,6 +124,31 @@ npm run dev
 cd backend && npm run dev
 cd frontend && npm run dev
 ```
+
+**Problemas ao iniciar?** O backend tem scripts alternativos:
+```bash
+cd backend
+
+# Opção 1: ts-node-dev (padrão, mais estável)
+npm run dev
+
+# Opção 2: tsx (se funcionar no seu ambiente)
+npm run dev:tsx
+
+# Opção 3: nodemon + ts-node
+npm run dev:nodemon
+```
+
+**Erro "Host version does not match binary version"?**
+```bash
+cd backend
+rm -rf node_modules package-lock.json
+npm cache clean --force
+npm install
+npm run dev
+```
+
+Veja [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) para mais soluções.
 
 ### 6. Acesse a aplicação
 - Frontend: http://localhost:5173
@@ -288,6 +315,43 @@ Encontrou um bug? Abra uma issue com:
 - [ ] Alertas de preço
 - [ ] WebSockets para dados em tempo real
 - [ ] Modo escuro
+
+## 🔧 Troubleshooting
+
+### Problemas Comuns
+
+#### Erro: "Host version does not match binary version"
+```bash
+cd backend
+rm -rf node_modules package-lock.json
+npm cache clean --force
+npm install
+npm run dev
+```
+
+#### Erro: PostgreSQL connection failed
+```bash
+# Verificar se PostgreSQL está rodando
+sudo systemctl status postgresql  # Linux
+services.msc  # Windows - procurar PostgreSQL
+
+# Criar banco se não existir
+createdb crypto_db
+```
+
+#### Erro: Port 3001 já em uso
+```bash
+# Linux/Mac
+lsof -ti:3001 | xargs kill -9
+
+# Windows (PowerShell Admin)
+Get-Process -Id (Get-NetTCPConnection -LocalPort 3001).OwningProcess | Stop-Process -Force
+```
+
+#### APIs retornando erros de rede
+✅ Isso não é crítico! O sistema usa múltiplas APIs. Se uma falhar, continua com as outras.
+
+Para mais soluções detalhadas, consulte: **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)**
 
 ## ⚠️ Disclaimer
 
